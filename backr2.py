@@ -10,15 +10,23 @@
 # Imports
 import os
 import argparse
+import socket
+import hashlib
 
 home = os.path.expanduser('~')
-default_location = home + "/backrs"
+default_location = home + "/backr2"
 cwd = os.getcwd()
 
 # Define general functions
 def mkdirexists(dir):
     if not(os.path.isdir(dir)):
         os.mkdir(dir)
+
+
+def file_overwrite(filename, contents):
+    f = open(filename, "w")
+    f.write(contents)
+    f.close()
 
 
 def main():
@@ -41,6 +49,32 @@ def main():
         if not os.path.exists(location):
             print("Error: location does not exist")
             exit()
+
+    # After we're sure location exists
+    source = args.source[0]
+    if not os.path.exists(source):
+        print("Error: source does not exist")
+        exit()
+
+    # After we're sure source and  location exist
+
+    basename = os.path.basename(source)
+    hostname = socket.gethostname()
+    host_hash = hostname + ":" + source
+    short_hash = hashlib.sha1(host_hash.encode("UTF-8")).hexdigest()[:7]
+    basehash = basename + "-" + short_hash
+
+    if not os.path.exists(location + "/" + basehash):
+        # Scenario for initial backup
+        backup_number = 1
+        mkdirexists(location + "/" + basehash)
+        mkdirexists(location + "/" + basehash + "/data")
+        mkdirexists(location + "/" + basehash + "/data/1")
+        mkdirexists(location + "/" + basehash + "/shadow")
+        mkdirexists(location + "/" + basehash + "/shadow/1")
+    else:
+        # TODO write scenario for after first backup
+        pass
 
 
 if __name__ == "__main__":
