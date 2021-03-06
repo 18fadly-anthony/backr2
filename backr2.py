@@ -29,6 +29,16 @@ def file_overwrite(filename, contents):
     f.close()
 
 
+def tree(path):
+    # Equivalent to tree command
+    file_list = []
+    for root, dirs, files in os.walk(".", topdown=False):
+        for name in files:
+            file_list.append(os.path.join(root, name))
+        for name in dirs:
+            file_list.append(os.path.join(root, name))
+    return file_list
+
 def main():
 
     # ArgParse
@@ -68,10 +78,11 @@ def main():
         # Scenario for initial backup
         backup_number = 1
         mkdirexists(location + "/" + basehash)
-        mkdirexists(location + "/" + basehash + "/data")
-        mkdirexists(location + "/" + basehash + "/data/1")
-        mkdirexists(location + "/" + basehash + "/shadow")
-        mkdirexists(location + "/" + basehash + "/shadow/1")
+        mkdirexists(location + "/" + basehash + "/store")
+        mkdirexists(location + "/" + basehash + "/backups")
+        mkdirexists(location + "/" + basehash + "/backups/" + str(backup_number))
+        file_list = tree(source)
+        print(file_list)
     else:
         # TODO write scenario for after first backup
         pass
