@@ -32,12 +32,38 @@ def file_overwrite(filename, contents):
 def tree(path):
     # Equivalent to tree command
     file_list = []
-    for root, dirs, files in os.walk(".", topdown=False):
+    for root, dirs, files in os.walk(path, topdown=False):
         for name in files:
             file_list.append(os.path.join(root, name))
         for name in dirs:
             file_list.append(os.path.join(root, name))
     return file_list
+
+
+def hash_file(filename):
+    BLOCKSIZE = 65536
+    hasher = hashlib.sha1()
+    with open(filename, 'rb') as afile:
+        buf = afile.read(BLOCKSIZE)
+        while len(buf) > 0:
+            hasher.update(buf)
+            buf = afile.read(BLOCKSIZE)
+    return hasher.hexdigest()
+
+
+def bootstrap_table(file_list):
+    table = []
+    for i in file_list:
+        new_item = []
+        new_item.append(i)
+        if os.path.isfile(i):
+            new_item.append("file")
+            new_item.append(hash_file(i))
+            new_item.append("1")
+        elif os.path.isdir(i):
+            new_item.append("dir")
+        print(new_item)
+
 
 def main():
 
@@ -82,7 +108,7 @@ def main():
         mkdirexists(location + "/" + basehash + "/backups")
         mkdirexists(location + "/" + basehash + "/backups/" + str(backup_number))
         file_list = tree(source)
-        print(file_list)
+        bootstrap_table(file_list)
     else:
         # TODO write scenario for after first backup
         pass
