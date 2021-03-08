@@ -29,14 +29,20 @@ def file_overwrite(filename, contents):
     f.close()
 
 
+def file_append(filename, contents):
+    f = open(filename, "a")
+    f.write(contents)
+    f.close()
+
+
 def tree(path):
     # Equivalent to tree command
     file_list = []
     for root, dirs, files in os.walk(path, topdown=False):
         for name in files:
             file_list.append(os.path.join(root, name))
-        for name in dirs:
-            file_list.append(os.path.join(root, name))
+        #for name in dirs:
+        #    file_list.append(os.path.join(root, name))
     return file_list
 
 
@@ -51,18 +57,15 @@ def hash_file(filename):
     return hasher.hexdigest()
 
 
-def bootstrap_table(file_list):
-    table = []
+def bootstrap_table(file_list, path):
+    j = 0
     for i in file_list:
         new_item = []
+        new_item.append(j)
         new_item.append(i)
-        if os.path.isfile(i):
-            new_item.append("file")
-            new_item.append(hash_file(i))
-            new_item.append("1")
-        elif os.path.isdir(i):
-            new_item.append("dir")
-        print(new_item)
+        new_item.append(hash_file(i))
+        j+=1
+        file_append(path, str(new_item) + '\n')
 
 
 def main():
@@ -103,12 +106,15 @@ def main():
     if not os.path.exists(location + "/" + basehash):
         # Scenario for initial backup
         backup_number = 1
-        mkdirexists(location + "/" + basehash)
-        mkdirexists(location + "/" + basehash + "/store")
-        mkdirexists(location + "/" + basehash + "/backups")
-        mkdirexists(location + "/" + basehash + "/backups/" + str(backup_number))
+        lbh = location + "/" + basehash
+        mkdirexists(lbh)
+        mkdirexists(lbh + "/store")
+        mkdirexists(lbh + "/backups")
+        mkdirexists(lbh + "/backups/" + str(backup_number))
+        mkdirexists(lbh + "/metadata")
+        mkdirexists(lbh + "/metadata/" + str(backup_number))
         file_list = tree(source)
-        bootstrap_table(file_list)
+        bootstrap_table(file_list, lbh + "/metadata/" + str(backup_number) + "/table")
     else:
         # TODO write scenario for after first backup
         pass
