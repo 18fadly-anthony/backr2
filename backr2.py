@@ -87,11 +87,13 @@ def read_file_to_array(filename):
         return(content_array)
 
 
-def resolve_table(table, location, backupdir):
+def resolve_table(table, location, backupdir, basename, backup_number):
     for i in table:
-        if not os.path.isfile(location + "/" + i[1]):
-            shutil.copyfile(i[0], location + "/" + i[1])
-        #os.symlink(location + "/" + i[1], backupdir + "/" + os.path.basename(i[0]))
+        if not os.path.exists(location + "/" + i[1] + "/file"):
+            mkdirexists(location + "/" + i[1])
+            shutil.copyfile(i[0], location + "/" + i[1] + "/file")
+            file_overwrite(location + "/" + i[1] + "/reference", str(backup_number))
+        os.symlink(location + "/" + i[1] + "/file", backupdir + "/" + relative_path(i[0], basename))
 
 
 def create_dirs(dir_list, basename, location):
@@ -104,6 +106,17 @@ def create_dirs(dir_list, basename, location):
             if j == basename:
                 past_basename = True
         mkdirexists(l)
+
+
+def relative_path(path, basename):
+    past_basename = False
+    l = ""
+    for i in path.split('/'):
+        if past_basename:
+            l += '/' + i
+        if i == basename:
+            past_basename = True
+    return l
 
 
 def main():
@@ -152,7 +165,7 @@ def main():
     dir_list = tree_dirs(source)
     create_dirs(dir_list, basename, lbh + "/backups/" + str(backup_number))
     table = bootstrap_table(file_list)
-    resolve_table(table, lbh + "/store", lbh + "/backups/" + str(backup_number))
+    resolve_table(table, lbh + "/store", lbh + "/backups/" + str(backup_number), basename, backup_number)
 
 
 if __name__ == "__main__":
