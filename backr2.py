@@ -46,17 +46,15 @@ def file_read(filename):
 def tree(path):
     # Equivalent to tree command
     file_list = []
-    for root, dirs, files in os.walk(path, topdown=False):
+    for root, files in os.walk(path, topdown=False):
         for name in files:
             file_list.append(os.path.join(root, name))
-        #for name in dirs:
-        #    file_list.append(os.path.join(root, name))
     return file_list
 
 
 def tree_dirs(path):
     file_list = []
-    for root, dirs, files in os.walk(path):
+    for root, dirs in os.walk(path):
         for name in dirs:
             file_list.append(os.path.join(root, name))
     return file_list
@@ -131,7 +129,7 @@ def main():
         epilog = '''placeholder'''
     )
 
-    parser.add_argument('--location', metavar = '<path>', nargs = 1, type = str, default = [default_location], help = 'Location to store backup, will be ignored if .backr-location exists, defaults to ~/backrs')
+    parser.add_argument('--location', metavar = '<path>', nargs = 1, type = str, default = [default_location], help = 'Location to store backup, will be ignored if .backr-location exists, defaults to ~/backr2')
     parser.add_argument('--source', metavar = '<path>', nargs = 1, type = str, default = [cwd], help = 'Source to backup, defaults to current directory')
 
     args = parser.parse_args()
@@ -150,32 +148,33 @@ def main():
         print("Error: source does not exist")
         exit()
 
-    # After we're sure source and  location exist
+    # After we're sure source and location exist
 
+    # Set some variables
     basename = os.path.basename(source)
     hostname = socket.gethostname()
     host_hash = hostname + ":" + source
     short_hash = hashlib.sha1(host_hash.encode("UTF-8")).hexdigest()[:7]
     basehash = basename + "-" + short_hash
-
-
     lbh = location + "/" + basehash
+
+    # Set some more variables, these ones require calling more functions
     file_list = tree(source)
     dir_list = tree_dirs(source)
     table = bootstrap_table(file_list)
+
     if not os.path.exists(location + "/" + basehash):
-        # Scenario for initial backup
         backup_number = 1
         mkdirexists(lbh)
         mkdirexists(lbh + "/store")
         mkdirexists(lbh + "/backups")
     else:
         backup_number = int(file_read(lbh + "/latest")) + 1
+    
     mkdirexists(lbh + "/backups/" + str(backup_number))
     create_dirs(dir_list, basename, lbh + "/backups/" + str(backup_number))
     resolve_table(table, lbh + "/store", lbh + "/backups/" + str(backup_number), basename, backup_number)
     file_overwrite(lbh + "/latest", str(backup_number))
-
 
 
 if __name__ == "__main__":
