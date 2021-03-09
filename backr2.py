@@ -46,15 +46,17 @@ def file_read(filename):
 def tree(path):
     # Equivalent to tree command
     file_list = []
-    for root, files in os.walk(path, topdown=False):
+    for root, dirs, files in os.walk(path, topdown=False):
         for name in files:
             file_list.append(os.path.join(root, name))
+        #for name in dirs:
+        #    file_list.append(os.path.join(root, name))
     return file_list
 
 
 def tree_dirs(path):
     file_list = []
-    for root, dirs in os.walk(path):
+    for root, dirs, files in os.walk(path):
         for name in dirs:
             file_list.append(os.path.join(root, name))
     return file_list
