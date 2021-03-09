@@ -38,6 +38,11 @@ def file_append(filename, contents):
     f.close()
 
 
+def file_read(filename):
+    f = open(filename, "r")
+    return f.read()
+
+
 def tree(path):
     # Equivalent to tree command
     file_list = []
@@ -153,19 +158,24 @@ def main():
     short_hash = hashlib.sha1(host_hash.encode("UTF-8")).hexdigest()[:7]
     basehash = basename + "-" + short_hash
 
-    #if not os.path.exists(location + "/" + basehash):
-        # Scenario for initial backup
-    backup_number = 1
+
     lbh = location + "/" + basehash
-    mkdirexists(lbh)
-    mkdirexists(lbh + "/store")
-    mkdirexists(lbh + "/backups")
-    mkdirexists(lbh + "/backups/" + str(backup_number))
     file_list = tree(source)
     dir_list = tree_dirs(source)
-    create_dirs(dir_list, basename, lbh + "/backups/" + str(backup_number))
     table = bootstrap_table(file_list)
+    if not os.path.exists(location + "/" + basehash):
+        # Scenario for initial backup
+        backup_number = 1
+        mkdirexists(lbh)
+        mkdirexists(lbh + "/store")
+        mkdirexists(lbh + "/backups")
+    else:
+        backup_number = int(file_read(lbh + "/latest")) + 1
+    mkdirexists(lbh + "/backups/" + str(backup_number))
+    create_dirs(dir_list, basename, lbh + "/backups/" + str(backup_number))
     resolve_table(table, lbh + "/store", lbh + "/backups/" + str(backup_number), basename, backup_number)
+    file_overwrite(lbh + "/latest", str(backup_number))
+
 
 
 if __name__ == "__main__":
