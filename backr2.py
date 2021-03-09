@@ -48,6 +48,17 @@ def tree(path):
     return file_list
 
 
+def tree_dirs(path):
+    file_list = []
+    for root, dirs, files in os.walk(path, topdown=False):
+        for name in dirs:
+            file_list.append(os.path.join(root, name))
+            #print(os.path.join(root, name))
+            print(name)
+            print(root)
+    return file_list
+
+
 def hash_file(filename):
     BLOCKSIZE = 65536
     hasher = hashlib.sha1()
@@ -78,10 +89,11 @@ def read_file_to_array(filename):
         return(content_array)
 
 
-def resolve_table(table, location):
+def resolve_table(table, location, backupdir):
     for i in table:
         if not os.path.isfile(location + "/" + i[1]):
             shutil.copyfile(i[0], location + "/" + i[1])
+        #os.symlink(location + "/" + i[1], backupdir + "/" + os.path.basename(i[0]))
 
 
 def main():
@@ -126,13 +138,10 @@ def main():
     mkdirexists(lbh + "/store")
     mkdirexists(lbh + "/backups")
     mkdirexists(lbh + "/backups/" + str(backup_number))
-    mkdirexists(lbh + "/metadata")
-    metanum = lbh + "/metadata/" + str(backup_number)
-    mkdirexists(metanum)
     file_list = tree(source)
     table = bootstrap_table(file_list)
-    file_overwrite(metanum + "/date", datetime.datetime.now().strftime('%G-%b-%d-%I_%M%p_%S') + '\n')
-    resolve_table(table, lbh + "/store")
+    resolve_table(table, lbh + "/store", lbh + "/backups/" + str(backup_number))
+    tree_dirs(source)
 
 
 if __name__ == "__main__":
