@@ -12,6 +12,8 @@ import os
 import argparse
 import socket
 import hashlib
+import datetime
+import shutil
 
 home = os.path.expanduser('~')
 default_location = home + "/backr2"
@@ -57,19 +59,32 @@ def hash_file(filename):
     return hasher.hexdigest()
 
 
-def bootstrap_table(file_list, path):
-    j = 0
+def bootstrap_table(file_list):
+    table = []
     for i in file_list:
         new_item = []
-        new_item.append(j)
         new_item.append(i)
         new_item.append(hash_file(i))
-        j+=1
-        file_append(path, str(new_item) + '\n')
+        #file_append(path, str(new_item) + '\n')
+        table.append(new_item)
+    return table
+
+
+def read_file_to_array(filename):
+    content_array = []
+    with open(filename) as f:
+        for line in f:
+            content_array.append(line.strip('\n'))
+        return(content_array)
+
+
+def resolve_table(table, location):
+    for i in table:
+        if not os.path.isfile(location + "/" + i[1]):
+            shutil.copyfile(i[0], location + "/" + i[1])
 
 
 def main():
-
     # ArgParse
     parser = argparse.ArgumentParser(
         description = '''placeholder''',
@@ -103,21 +118,21 @@ def main():
     short_hash = hashlib.sha1(host_hash.encode("UTF-8")).hexdigest()[:7]
     basehash = basename + "-" + short_hash
 
-    if not os.path.exists(location + "/" + basehash):
+    #if not os.path.exists(location + "/" + basehash):
         # Scenario for initial backup
-        backup_number = 1
-        lbh = location + "/" + basehash
-        mkdirexists(lbh)
-        mkdirexists(lbh + "/store")
-        mkdirexists(lbh + "/backups")
-        mkdirexists(lbh + "/backups/" + str(backup_number))
-        mkdirexists(lbh + "/metadata")
-        mkdirexists(lbh + "/metadata/" + str(backup_number))
-        file_list = tree(source)
-        bootstrap_table(file_list, lbh + "/metadata/" + str(backup_number) + "/table")
-    else:
-        # TODO write scenario for after first backup
-        pass
+    backup_number = 1
+    lbh = location + "/" + basehash
+    mkdirexists(lbh)
+    mkdirexists(lbh + "/store")
+    mkdirexists(lbh + "/backups")
+    mkdirexists(lbh + "/backups/" + str(backup_number))
+    mkdirexists(lbh + "/metadata")
+    metanum = lbh + "/metadata/" + str(backup_number)
+    mkdirexists(metanum)
+    file_list = tree(source)
+    table = bootstrap_table(file_list)
+    file_overwrite(metanum + "/date", datetime.datetime.now().strftime('%G-%b-%d-%I_%M%p_%S') + '\n')
+    resolve_table(table, lbh + "/store")
 
 
 if __name__ == "__main__":
