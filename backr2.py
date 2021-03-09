@@ -9,6 +9,7 @@
 
 # Imports
 import os
+import sys
 import argparse
 import socket
 import hashlib
@@ -50,12 +51,9 @@ def tree(path):
 
 def tree_dirs(path):
     file_list = []
-    for root, dirs, files in os.walk(path, topdown=False):
+    for root, dirs, files in os.walk(path):
         for name in dirs:
             file_list.append(os.path.join(root, name))
-            #print(os.path.join(root, name))
-            print(name)
-            print(root)
     return file_list
 
 
@@ -94,6 +92,18 @@ def resolve_table(table, location, backupdir):
         if not os.path.isfile(location + "/" + i[1]):
             shutil.copyfile(i[0], location + "/" + i[1])
         #os.symlink(location + "/" + i[1], backupdir + "/" + os.path.basename(i[0]))
+
+
+def create_dirs(dir_list, basename, location):
+    for i in dir_list:
+        past_basename = False
+        l = location
+        for j in i.split('/'):
+            if past_basename:
+                l += '/' + j
+            if j == basename:
+                past_basename = True
+        mkdirexists(l)
 
 
 def main():
@@ -139,9 +149,10 @@ def main():
     mkdirexists(lbh + "/backups")
     mkdirexists(lbh + "/backups/" + str(backup_number))
     file_list = tree(source)
+    dir_list = tree_dirs(source)
+    create_dirs(dir_list, basename, lbh + "/backups/" + str(backup_number))
     table = bootstrap_table(file_list)
     resolve_table(table, lbh + "/store", lbh + "/backups/" + str(backup_number))
-    tree_dirs(source)
 
 
 if __name__ == "__main__":
