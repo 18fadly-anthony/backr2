@@ -98,6 +98,8 @@ def resolve_table(table, location, backupdir, basename, backup_number):
             mkdirexists(location + "/" + i[1])
             shutil.copyfile(i[0], location + "/" + i[1] + "/file")
             file_overwrite(location + "/" + i[1] + "/reference", str(backup_number))
+        else:
+            file_overwrite(location + "/" + i[1] + "/reference", str(backup_number))
         os.symlink(location + "/" + i[1] + "/file", backupdir + "/" + relative_path(i[0], basename))
 
 
@@ -138,6 +140,25 @@ def restore(source, location):
         shutil.copytree(lbh + "/backups/" + str(backup_number), source + "/backr2-restore")
 
 
+def gc(source, location):
+    basename = os.path.basename(source)
+    hostname = socket.gethostname()
+    host_hash = hostname + ":" + source
+    short_hash = hashlib.sha1(host_hash.encode("UTF-8")).hexdigest()[:7]
+    basehash = basename + "-" + short_hash
+    lbh = location + "/" + basehash
+    if os.path.exists(location + "/" + basehash):
+        latest = int(file_read(lbh + "/latest"))
+        for i in range(1, latest):
+            if os.path.exists(lbh + "/backups/" + str(i)):
+                shutil.rmtree(lbh + "/backups/" + str(i))
+
+    for i in os.listdir(lbh + "/store"):
+        reference = file_read(lbh + "/store/" + i + "/reference")
+        if int(reference) < latest:
+            shutil.rmtree(lbh + "/store/" + i)
+
+
 def main():
     # ArgParse
     parser = argparse.ArgumentParser(
@@ -148,6 +169,7 @@ def main():
     parser.add_argument('--location', metavar = '<path>', nargs = 1, type = str, default = [default_location], help = 'Location to store backup, will be ignored if .backr-location exists, defaults to ~/backr2')
     parser.add_argument('--source', metavar = '<path>', nargs = 1, type = str, default = [cwd], help = 'Source to backup, defaults to current directory')
     parser.add_argument('--restore', action='store_true', help='Restore from backup')
+    parser.add_argument('--garbage-collect', action='store_true', help='Delete old backups')
 
     args = parser.parse_args()
 
@@ -175,6 +197,10 @@ def main():
         restore(source, location)
         exit()
         # Exit after restoring to avoid running the rest of the backup script
+
+    if args.garbage_collect:
+        gc(source, location)
+        exit()
 
     if not got_location_from_file:
         file_overwrite(source + "/.backr2-location", location)
