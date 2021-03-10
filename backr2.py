@@ -126,14 +126,13 @@ def relative_path(path, basename):
     return l
 
 
-def restore(source, lbh):
+def restore(lbh, restore_path):
     if not os.path.exists(lbh):
-        print("Error: no backups have been made")
+        print("Specify source with --source and make sure backups of it exist")
     else:
         backup_number = file_read(lbh + "/latest")
-        shutil.copytree(lbh + "/backups/" + backup_number, source + "/backr2-restore")
-
-    print("Restored to backr2-restore")
+        shutil.copytree(lbh + "/backups/" + backup_number, restore_path + "/backr2-restore")
+        print("Restored to " + restore_path + "/backr2-restore")
 
 
 def gc(lbh):
@@ -158,7 +157,7 @@ def main():
 
     parser.add_argument('--location', metavar = '<path>', nargs = 1, type = str, default = [None], help = 'Location to store backup, will be ignored if .backr-location exists, defaults to ~/backr2')
     parser.add_argument('--source', metavar = '<path>', nargs = 1, type = str, default = [cwd], help = 'Source to backup, defaults to current directory')
-    parser.add_argument('--restore', action='store_true', help='Restore from backup')
+    parser.add_argument('--restore', metavar = '<path>', nargs = 1, type = str, default = '', help = 'restore from backup in <path>')
     parser.add_argument('--garbage-collect', action='store_true', help='Delete old backups')
     parser.add_argument('-d', action='store_true', help='Use default backup location: ' + default_location)
 
@@ -201,8 +200,8 @@ def main():
     lbh = location + "/" + basehash
 
 
-    if args.restore:
-        restore(source, lbh)
+    if args.restore != '':
+        restore(lbh, args.restore[0])
         exit()
         # Exit after restoring to avoid running the rest of the backup script
 
