@@ -136,7 +136,19 @@ def main():
 
     args = parser.parse_args()
 
-    location = args.location[0]
+    # After we're sure location exists
+    source = args.source[0]
+    if not os.path.exists(source):
+        print("Error: source does not exist")
+        exit()
+
+    if os.path.exists(source + "/.backr2-location"):
+        got_location_from_file = True
+        location = file_read(source + "/.backr2-location")
+    else:
+        got_location_from_file = False
+        location = args.location[0]
+    
     if location == default_location:
         mkdirexists(location)
     else:
@@ -144,11 +156,8 @@ def main():
             print("Error: location does not exist")
             exit()
 
-    # After we're sure location exists
-    source = args.source[0]
-    if not os.path.exists(source):
-        print("Error: source does not exist")
-        exit()
+    if not got_location_from_file:
+        file_overwrite(source + "/.backr2-location", location)
 
     # After we're sure source and location exist
 
