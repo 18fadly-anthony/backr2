@@ -126,28 +126,16 @@ def relative_path(path, basename):
     return l
 
 
-def restore(source, location):
-    basename = os.path.basename(source)
-    hostname = socket.gethostname()
-    host_hash = hostname + ":" + source
-    short_hash = hashlib.sha1(host_hash.encode("UTF-8")).hexdigest()[:7]
-    basehash = basename + "-" + short_hash
-    lbh = location + "/" + basehash
-    if not os.path.exists(location + "/" + basehash):
+def restore(source, lbh):
+    if not os.path.exists(lbh):
         print("Error: no backups have been made")
     else:
         backup_number = int(file_read(lbh + "/latest"))
         shutil.copytree(lbh + "/backups/" + str(backup_number), source + "/backr2-restore")
 
 
-def gc(source, location):
-    basename = os.path.basename(source)
-    hostname = socket.gethostname()
-    host_hash = hostname + ":" + source
-    short_hash = hashlib.sha1(host_hash.encode("UTF-8")).hexdigest()[:7]
-    basehash = basename + "-" + short_hash
-    lbh = location + "/" + basehash
-    if os.path.exists(location + "/" + basehash):
+def gc(lbh):
+    if os.path.exists(lbh):
         latest = int(file_read(lbh + "/latest"))
         for i in range(1, latest):
             if os.path.exists(lbh + "/backups/" + str(i)):
@@ -193,19 +181,7 @@ def main():
             print("Error: location does not exist")
             exit()
 
-    if args.restore:
-        restore(source, location)
-        exit()
-        # Exit after restoring to avoid running the rest of the backup script
-
-    if args.garbage_collect:
-        gc(source, location)
-        exit()
-
-    if not got_location_from_file:
-        file_overwrite(source + "/.backr2-location", location)
-
-   # After we're sure source and location exist
+    # After we're sure source and location exist
 
     # Set some variables
     basename = os.path.basename(source)
@@ -214,6 +190,19 @@ def main():
     short_hash = hashlib.sha1(host_hash.encode("UTF-8")).hexdigest()[:7]
     basehash = basename + "-" + short_hash
     lbh = location + "/" + basehash
+
+
+    if args.restore:
+        restore(source, lbh)
+        exit()
+        # Exit after restoring to avoid running the rest of the backup script
+
+    if args.garbage_collect:
+        gc(lbh)
+        exit()
+
+    if not got_location_from_file:
+        file_overwrite(source + "/.backr2-location", location)
 
     # Set some more variables, these ones require calling more functions
     file_list = tree(source)
