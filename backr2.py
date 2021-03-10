@@ -130,8 +130,8 @@ def restore(source, lbh):
     if not os.path.exists(lbh):
         print("Error: no backups have been made")
     else:
-        backup_number = int(file_read(lbh + "/latest"))
-        shutil.copytree(lbh + "/backups/" + str(backup_number), source + "/backr2-restore")
+        backup_number = file_read(lbh + "/latest")
+        shutil.copytree(lbh + "/backups/" + backup_number, source + "/backr2-restore")
 
 
 def gc(lbh):
