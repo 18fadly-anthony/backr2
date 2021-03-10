@@ -124,6 +124,20 @@ def relative_path(path, basename):
     return l
 
 
+def restore(source, location):
+    basename = os.path.basename(source)
+    hostname = socket.gethostname()
+    host_hash = hostname + ":" + source
+    short_hash = hashlib.sha1(host_hash.encode("UTF-8")).hexdigest()[:7]
+    basehash = basename + "-" + short_hash
+    lbh = location + "/" + basehash
+    if not os.path.exists(location + "/" + basehash):
+        print("Error: no backups have been made")
+    else:
+        backup_number = int(file_read(lbh + "/latest"))
+        shutil.copytree(lbh + "/backups/" + str(backup_number), source + "/backr2-restore")
+
+
 def main():
     # ArgParse
     parser = argparse.ArgumentParser(
@@ -133,6 +147,7 @@ def main():
 
     parser.add_argument('--location', metavar = '<path>', nargs = 1, type = str, default = [default_location], help = 'Location to store backup, will be ignored if .backr-location exists, defaults to ~/backr2')
     parser.add_argument('--source', metavar = '<path>', nargs = 1, type = str, default = [cwd], help = 'Source to backup, defaults to current directory')
+    parser.add_argument('--restore', action='store_true', help='Restore from backup')
 
     args = parser.parse_args()
 
@@ -156,10 +171,15 @@ def main():
             print("Error: location does not exist")
             exit()
 
+    if args.restore:
+        restore(source, location)
+        exit()
+        # Exit after restoring to avoid running the rest of the backup script
+
     if not got_location_from_file:
         file_overwrite(source + "/.backr2-location", location)
 
-    # After we're sure source and location exist
+   # After we're sure source and location exist
 
     # Set some variables
     basename = os.path.basename(source)
