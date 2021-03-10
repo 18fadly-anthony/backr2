@@ -133,6 +133,8 @@ def restore(source, lbh):
         backup_number = file_read(lbh + "/latest")
         shutil.copytree(lbh + "/backups/" + backup_number, source + "/backr2-restore")
 
+    print("Restored to backr2-restore")
+
 
 def gc(lbh):
     if os.path.exists(lbh):
@@ -221,6 +223,7 @@ def main():
     create_dirs(dir_list, basename, lbh + "/backups/" + str(backup_number))
     resolve_table(table, lbh + "/store", lbh + "/backups/" + str(backup_number), basename, backup_number)
     file_overwrite(lbh + "/latest", str(backup_number))
+    print("Completed backup to " + lbh + "/backups/" + str(backup_number))
 
 
 if __name__ == "__main__":
