@@ -17,7 +17,7 @@ import datetime
 import shutil
 
 home = os.path.expanduser('~')
-default_location = home + "/backr2"
+default_location = home + "/backr2-backups"
 cwd = os.getcwd()
 
 # Define general functions
@@ -159,7 +159,7 @@ def main():
 
     parser.add_argument('--location', metavar = '<path>', nargs = 1, type = str, default = [None], help = 'Location to store backup, will be ignored if .backr-location exists, defaults to ~/backr2')
     parser.add_argument('--source', metavar = '<path>', nargs = 1, type = str, default = [cwd], help = 'Source to backup, defaults to current directory')
-    parser.add_argument('--restore', metavar = '<path> <backup number>', nargs = 2, type = str, default = '', help = 'restore from backup in <path>')
+    parser.add_argument('--restore', metavar = ('<path>', '<backup number>'), nargs = 2, type = str, default = '', help = 'restore from backup <backup number> to <path>')
     parser.add_argument('--garbage-collect', action='store_true', help='Delete old backups')
     parser.add_argument('-d', action='store_true', help='Use default backup location: ' + default_location)
 
