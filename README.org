@@ -20,4 +20,26 @@ Complete rewrite of [[https://github.com/18fadly-anthony/backr-py][backr-py]], n
 
 * Usage
 #+BEGIN_SRC bash
+  # Backup /foo/bar to /foo/backups
+  # source defaults to current directory
+  # -d can be used to use ~/backr2-backups as the location
+  $ backr2.py --source /foo/bar --location /foo/backups
+
+  # Restore backup 1 of /foo/bar in /foo/backups to /foo/restore-location
+  # source defaults to current directory, location defaults to the contents of .backr2-location
+  $ backr2.py --restore /foo/restore-location 1 --source /foo/bar --location /foo/backups
+
+  # Delete old backups
+  $ backr2.py --garbage-collect --source /foo/bar
+#+END_SRC
+
+* Removal
+#+BEGIN_SRC bash
+  $ cd backr2
+
+  $ make uninstall
+
+  $ cd ..
+
+  $ rm -rf backr2
 #+END_SRC
