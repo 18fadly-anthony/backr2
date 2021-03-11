@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
 # Copyright (c) 2020 Anthony Fadly (18fadly.anthony@gmail.com)
-# This program is licensed under the Apache License 2.0
+# This program is licensed under the GNU LGPL
 # You are free to copy, modify, and redistribute the code.
-# See LICENSE file.
+# See COPYING file.
 
-# Backr 2: Complete rewrite of backr-py
+# Backr 2: Complete rewrite of backr-py (https://github.com/18fadly-anthony/backr-py)
 
 # Imports
 import os
