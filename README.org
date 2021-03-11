@@ -1,7 +1,6 @@
 #+TITLE: Backr 2
 #+AUTHOR: Anthony Fadly
 #+OPTIONS: toc:nil
------
 
 Complete rewrite of [[https://github.com/18fadly-anthony/backr-py][backr-py]], now with [[https://en.m.wikipedia.org/wiki/Delta_encoding][delta compression]]
 
@@ -9,3 +8,16 @@ Complete rewrite of [[https://github.com/18fadly-anthony/backr-py][backr-py]], n
   - Delta compression: backups only make copies of files that have changed since the last one
   - Garbage Collection: old backups can be deleted without affecting new ones
   - Backups can stored in different locations
+
+* Installation
+#+BEGIN_SRC bash
+  $ git clone --depth 1 https://github.com/18fadly-anthony/backr2
+
+  $ cd backr2
+
+  $ make install # Installs to ~/.local/bin
+#+END_SRC
+
+* Usage
+#+BEGIN_SRC bash
+#+END_SRC
