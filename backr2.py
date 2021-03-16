@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright (c) 2020 Anthony Fadly (18fadly.anthony@gmail.com)
+# Copyright (c) 2021 Anthony Fadly (18fadly.anthony@gmail.com)
 # This program is licensed under the GNU LGPL
 # You are free to copy, modify, and redistribute the code.
 # See COPYING file.
@@ -153,8 +153,8 @@ def gc(lbh):
 def main():
     # ArgParse
     parser = argparse.ArgumentParser(
-        description = '''placeholder''',
-        epilog = '''placeholder'''
+        description = '''Backr2 backup script''',
+        epilog = '''Copyright (c) 2021 Anthony Fadly (18fadly.anthony@gmail.com)'''
     )
 
     parser.add_argument('--location', metavar = '<path>', nargs = 1, type = str, default = [None], help = 'Location to store backup, will be ignored if .backr-location exists, defaults to ~/backr2')
