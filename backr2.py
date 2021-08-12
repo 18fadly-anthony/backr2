@@ -23,6 +23,8 @@ cwd = os.getcwd()
 # Define general functions
 def mkdirexists(dir):
     if not(os.path.isdir(dir)):
+        if verbose:
+            print("Creating directory " + dir)
         os.mkdir(dir)
 
 
@@ -63,6 +65,8 @@ def tree_dirs(path):
 
 
 def hash_file(filename):
+    if verbose:
+        print("Calculating hash of " + filename)
     BLOCKSIZE = 65536
     hasher = hashlib.sha1()
     with open(filename, 'rb') as afile:
@@ -79,8 +83,10 @@ def bootstrap_table(file_list):
         new_item = []
         new_item.append(i)
         new_item.append(hash_file(i))
-        #file_append(path, str(new_item) + '\n')
         table.append(new_item)
+    if verbose:
+        print("Created table:")
+        print(table)
     return table
 
 
@@ -97,9 +103,9 @@ def resolve_table(table, location, backupdir, basename, backup_number):
         if not os.path.exists(location + "/" + i[1] + "/file"):
             mkdirexists(location + "/" + i[1])
             shutil.copyfile(i[0], location + "/" + i[1] + "/file")
-            file_overwrite(location + "/" + i[1] + "/reference", str(backup_number))
-        else:
-            file_overwrite(location + "/" + i[1] + "/reference", str(backup_number))
+            if verbose:
+                print("Copying " + i[0] + " to " + location + "/" + i[1] + "/file")
+        file_overwrite(location + "/" + i[1] + "/reference", str(backup_number))
         os.symlink(location + "/" + i[1] + "/file", backupdir + "/" + relative_path(i[0], basename))
 
 
@@ -142,15 +148,23 @@ def gc(lbh):
         latest = int(file_read(lbh + "/latest"))
         for i in range(1, latest):
             if os.path.exists(lbh + "/backups/" + str(i)):
+                if verbose:
+                    print("Deleting backup " + str(i))
                 shutil.rmtree(lbh + "/backups/" + str(i))
 
     for i in os.listdir(lbh + "/store"):
         reference = file_read(lbh + "/store/" + i + "/reference")
         if int(reference) < latest:
+            if verbose:
+                print("Deleting file " + lbh + "/store/" + i)
             shutil.rmtree(lbh + "/store/" + i)
 
 
+verbose = False
+
+
 def main():
+    global verbose
     # ArgParse
     parser = argparse.ArgumentParser(
         description = '''Backr2 backup script''',
@@ -162,8 +176,11 @@ def main():
     parser.add_argument('--restore', metavar = ('<path>', '<backup number>'), nargs = 2, type = str, default = '', help = 'restore from backup <backup number> to <path>')
     parser.add_argument('--garbage-collect', action='store_true', help='Delete old backups')
     parser.add_argument('-d', action='store_true', help='Use default backup location: ' + default_location)
+    parser.add_argument('--verbose', action='store_true', default=False, help='Be verbose')
 
     args = parser.parse_args()
+
+    verbose = args.verbose
 
     # After we're sure location exists
     source = args.source[0]
@@ -183,7 +200,7 @@ def main():
         if location == None:
             print("Please specify a backup location with --location or -d for default")
             exit()
-    
+
     if location == default_location:
         mkdirexists(location)
     else:
@@ -226,7 +243,7 @@ def main():
         mkdirexists(lbh + "/backups")
     else:
         backup_number = int(file_read(lbh + "/latest")) + 1
-    
+
     mkdirexists(lbh + "/backups/" + str(backup_number))
     create_dirs(dir_list, basename, lbh + "/backups/" + str(backup_number))
     resolve_table(table, lbh + "/store", lbh + "/backups/" + str(backup_number), basename, backup_number)
