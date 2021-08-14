@@ -89,7 +89,7 @@ class FileTable:
 
             Convert this Entry to a string of the format `<file name> (sha-1: <file hash>)`
             """
-            return "%s (sha-1: %s)" % self.file_name, self.file_hash
+            return "%s (sha-1: %s)" % (self.file_name, self.file_hash)
 
     def __init__(self, file_list: List[str] = []):
         self.__file_list: List[FileTable.Entry] = []
