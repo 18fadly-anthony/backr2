@@ -13,8 +13,8 @@ import sys
 import argparse
 import socket
 import hashlib
-import datetime
 import shutil
+from typing import Iterator, List
 
 home = os.path.expanduser('~')
 default_location = home + "/backr2-backups"
@@ -77,28 +77,49 @@ def hash_file(filename):
     return hasher.hexdigest()
 
 
-def bootstrap_table(file_list):
-    table = []
-    for i in file_list:
-        new_item = []
-        new_item.append(i)
-        new_item.append(hash_file(i))
-        table.append(new_item)
-    if verbose:
-        print("Created table:")
-        print(table)
-    return table
+class FileTable:
+    class Entry:
+        def __init__(self, file_name: str, file_hash: str):
+            self.file_name: str = file_name
+            self.file_hash: str = file_hash
+
+        def __str__(self) -> str:
+            """Converts this Entry to a string.
+
+Convert this Entry to a string of the format `<file name> (sha-1: <file
+hash>)`
+            """
+            return "%s (sha-1: %s)" % self.file_name, self.file_hash
+
+    def __init__(self, file_list: List[str] = []):
+        self.__file_list: List[FileTable.Entry] = []
+        for i in file_list:
+            self.__file_list.append(FileTable.Entry(i, hash_file(i)))
+        if verbose:
+            print("Created table:")
+            print(self)
+
+    def __str__(self) -> str:
+        return str(self.__file_list)
+
+    def __iter__(self) -> Iterator[Entry]:
+        return self.__file_list.__iter__()
 
 
-def resolve_table(table, location, backupdir, basename, backup_number):
+def resolve_table(table: FileTable, location, backupdir, basename,
+                  backup_number):
     for i in table:
-        if not os.path.exists(location + "/" + i[1] + "/file"):
-            mkdirexists(location + "/" + i[1])
-            shutil.copyfile(i[0], location + "/" + i[1] + "/file")
+        if not os.path.exists(location + "/" + i.file_hash + "/file"):
+            mkdirexists(location + "/" + i.file_hash)
+            shutil.copyfile(i.file_name, location + "/"
+                            + i.file_hash + "/file")
             if verbose:
-                print("Copying " + i[0] + " to " + location + "/" + i[1] + "/file")
-        file_overwrite(location + "/" + i[1] + "/reference", str(backup_number))
-        os.symlink(location + "/" + i[1] + "/file", backupdir + relative_path(i[0], basename))
+                print("Copying " + i.file_name + " to " + location + "/"
+                      + i.file_hash + "/file")
+        file_overwrite(location + "/" + i.file_hash + "/reference",
+                       str(backup_number))
+        os.symlink(location + "/" + i.file_hash + "/file",
+                   backupdir + "/" + relative_path(i.file_name, basename))
 
 
 def create_dirs(dir_list, basename, location):
@@ -226,7 +247,7 @@ def main():
     # Set some more variables, these ones require calling more functions
     file_list = tree(source)
     dir_list = tree_dirs(source)
-    table = bootstrap_table(file_list)
+    table: FileTable = FileTable(file_list)
 
     if not os.path.exists(location + "/" + basehash):
         backup_number = 1
