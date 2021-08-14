@@ -171,12 +171,12 @@ def main():
         epilog = '''Copyright (c) 2021 Anthony Fadly (18fadly.anthony@gmail.com)'''
     )
 
-    parser.add_argument('--location', metavar = '<path>', nargs = 1, type = str, default = [None], help = 'Location to store backup, will be ignored if .backr-location exists, defaults to ~/backr2')
-    parser.add_argument('--source', metavar = '<path>', nargs = 1, type = str, default = [cwd], help = 'Source to backup, defaults to current directory')
-    parser.add_argument('--restore', metavar = ('<path>', '<backup number>'), nargs = 2, type = str, default = '', help = 'restore from backup <backup number> to <path>')
-    parser.add_argument('--garbage-collect', action='store_true', help='Delete old backups')
-    parser.add_argument('-d', action='store_true', help='Use default backup location: ' + default_location)
-    parser.add_argument('--verbose', action='store_true', default=False, help='Be verbose')
+    parser.add_argument('-l', '--location', metavar = '<path>', nargs = 1, type = str, default = [None], help = 'Location to store backup, will be ignored if .backr-location exists, defaults to ~/backr2')
+    parser.add_argument('-s', '--source', metavar = '<path>', nargs = 1, type = str, default = [cwd], help = 'Source to backup, defaults to current directory')
+    parser.add_argument('-r', '--restore', metavar = ('<path>', '<backup number>'), nargs = 2, type = str, default = '', help = 'restore from backup <backup number> to <path>')
+    parser.add_argument('-gc', '--garbage-collect', action='store_true', help='Delete old backups')
+    parser.add_argument('-d', '--default', action='store_true', help='Use default backup location: ' + default_location)
+    parser.add_argument('-v', '--verbose', action='store_true', default=False, help='Be verbose')
 
     args = parser.parse_args()
 
