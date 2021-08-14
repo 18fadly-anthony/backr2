@@ -193,7 +193,7 @@ def main():
         location = file_read(source + "/.backr2-location")
     else:
         got_location_from_file = False
-        if args.d:
+        if args.default:
             location = default_location
         else:
             location = args.location[0]
