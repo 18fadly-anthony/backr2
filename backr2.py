@@ -84,10 +84,10 @@ class FileTable:
             self.file_hash: str = file_hash
 
         def __str__(self) -> str:
-            """Converts this Entry to a string.
+            """
+            Converts this Entry to a string.
 
-Convert this Entry to a string of the format `<file name> (sha-1: <file
-hash>)`
+            Convert this Entry to a string of the format `<file name> (sha-1: <file hash>)`
             """
             return "%s (sha-1: %s)" % self.file_name, self.file_hash
 
@@ -106,20 +106,15 @@ hash>)`
         return self.__file_list.__iter__()
 
 
-def resolve_table(table: FileTable, location, backupdir, basename,
-                  backup_number):
+def resolve_table(table: FileTable, location, backupdir, basename, backup_number):
     for i in table:
         if not os.path.exists(location + "/" + i.file_hash + "/file"):
             mkdirexists(location + "/" + i.file_hash)
-            shutil.copyfile(i.file_name, location + "/"
-                            + i.file_hash + "/file")
+            shutil.copyfile(i.file_name, location + "/" + i.file_hash + "/file")
             if verbose:
-                print("Copying " + i.file_name + " to " + location + "/"
-                      + i.file_hash + "/file")
-        file_overwrite(location + "/" + i.file_hash + "/reference",
-                       str(backup_number))
-        os.symlink(location + "/" + i.file_hash + "/file",
-                   backupdir + "/" + relative_path(i.file_name, basename))
+                print("Copying " + i.file_name + " to " + location + "/" + i.file_hash + "/file")
+        file_overwrite(location + "/" + i.file_hash + "/reference", str(backup_number))
+        os.symlink(location + "/" + i.file_hash + "/file", backupdir + "/" + relative_path(i.file_name, basename))
 
 
 def create_dirs(dir_list, basename, location):
