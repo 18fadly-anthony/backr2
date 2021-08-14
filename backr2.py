@@ -90,14 +90,6 @@ def bootstrap_table(file_list):
     return table
 
 
-def read_file_to_array(filename):
-    content_array = []
-    with open(filename) as f:
-        for line in f:
-            content_array.append(line.strip('\n'))
-        return(content_array)
-
-
 def resolve_table(table, location, backupdir, basename, backup_number):
     for i in table:
         if not os.path.exists(location + "/" + i[1] + "/file"):
@@ -106,7 +98,7 @@ def resolve_table(table, location, backupdir, basename, backup_number):
             if verbose:
                 print("Copying " + i[0] + " to " + location + "/" + i[1] + "/file")
         file_overwrite(location + "/" + i[1] + "/reference", str(backup_number))
-        os.symlink(location + "/" + i[1] + "/file", backupdir + "/" + relative_path(i[0], basename))
+        os.symlink(location + "/" + i[1] + "/file", backupdir + relative_path(i[0], basename))
 
 
 def create_dirs(dir_list, basename, location):
