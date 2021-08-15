@@ -106,7 +106,8 @@ class FileTable:
         return self.__file_list.__iter__()
 
 
-def resolve_table(table: FileTable, location, backupdir, basename, backup_number):
+def resolve_table(table: FileTable, lbh, backupdir, basename, backup_number):
+    location = lbh + "/store"
     for i in table:
         if not os.path.exists(location + "/" + i.file_hash + "/file"):
             mkdirexists(location + "/" + i.file_hash)
@@ -114,7 +115,15 @@ def resolve_table(table: FileTable, location, backupdir, basename, backup_number
             if verbose:
                 print("Copying " + i.file_name + " to " + location + "/" + i.file_hash + "/file")
         file_overwrite(location + "/" + i.file_hash + "/reference", str(backup_number))
-        os.symlink(location + "/" + i.file_hash + "/file", backupdir + "/" + relative_path(i.file_name, basename))
+        symlink_location = "../../"
+        for j in range(relative_depth(backupdir + relative_path(i.file_name, basename), lbh) - 4):
+            symlink_location += "../"
+        symlink_location += "store/" + i.file_hash + "/file"
+        os.symlink(symlink_location, backupdir + relative_path(i.file_name, basename))
+
+
+def relative_depth(path1, path2):
+    return len(relative_path(path1, os.path.basename(path2)).split('/'))
 
 
 def create_dirs(dir_list, basename, location):
@@ -254,7 +263,7 @@ def main():
 
     mkdirexists(lbh + "/backups/" + str(backup_number))
     create_dirs(dir_list, basename, lbh + "/backups/" + str(backup_number))
-    resolve_table(table, lbh + "/store", lbh + "/backups/" + str(backup_number), basename, backup_number)
+    resolve_table(table, lbh, lbh + "/backups/" + str(backup_number), basename, backup_number)
     file_overwrite(lbh + "/latest", str(backup_number))
     print("Completed backup to " + lbh + "/backups/" + str(backup_number))
 
