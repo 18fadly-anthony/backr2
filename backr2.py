@@ -16,6 +16,7 @@ import shutil
 import tarfile
 import hashlib
 import argparse
+import mimetypes
 from typing import Iterator, List
 
 home = os.path.expanduser('~')
@@ -107,10 +108,24 @@ class FileTable:
     def __iter__(self) -> Iterator[Entry]:
         return self.__file_list.__iter__()
 
+
+def decide_to_compress(filename):
+    compressed_formats = ['audio', 'image', 'application', 'video']
+    uncompressed_formats = ['text']
+    mime = mimetypes.guess_type(filename)
+    shortmime = str(mime[0]).split('/')[0]
+    if shortmime in compressed_formats:
+        return False
+    elif shortmime in uncompressed_formats:
+        return True
+    else:
+        return decide_by_entropy(filename)
+
+
 # Compress files only if they would compress to 90% or less of their original size
 # This code was adapted from Kenneth Hartman who posted the original in Python 2
 # https://kennethghartman.com/calculate-file-entropy/
-def decide_to_compress(filename):
+def decide_by_entropy(filename):
     compression_threshold = 90
     f = open(filename, "rb")
     byteArr = list(f.read())
