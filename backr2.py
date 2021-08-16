@@ -165,8 +165,7 @@ def gc(lbh):
         latest = int(file_read(lbh + "/latest"))
         for i in range(1, latest):
             if os.path.exists(lbh + "/backups/" + str(i)):
-                if verbose:
-                    print("Deleting backup " + str(i))
+                print("Deleting backup " + str(i))
                 shutil.rmtree(lbh + "/backups/" + str(i))
 
     for i in os.listdir(lbh + "/store"):
