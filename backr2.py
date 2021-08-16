@@ -10,10 +10,12 @@
 # Imports
 import os
 import sys
-import argparse
+import math
 import socket
-import hashlib
 import shutil
+import tarfile
+import hashlib
+import argparse
 from typing import Iterator, List
 
 home = os.path.expanduser('~')
@@ -105,21 +107,57 @@ class FileTable:
     def __iter__(self) -> Iterator[Entry]:
         return self.__file_list.__iter__()
 
+# Compress files only if they would compress to 90% or less of their original size
+# This code was adapted from Kenneth Hartman who posted the original in Python 2
+# https://kennethghartman.com/calculate-file-entropy/
+def decide_to_compress(filename):
+    compression_threshold = 90
+    f = open(filename, "rb")
+    byteArr = list(f.read())
+    f.close()
+    fileSize = len(byteArr)
+    freqList = []
+    for b in range(256):
+        ctr = 0
+        for byte in byteArr:
+            if byte == b:
+                ctr += 1
+        freqList.append(float(ctr) / fileSize)
+    ent = 0.0
+    for freq in freqList:
+        if freq > 0:
+            ent = ent + freq * math.log(freq, 2)
+    ent = -ent
+    compression_ratio = (((ent * fileSize) / 8) / fileSize) * 100
+    return compression_ratio <= compression_threshold
 
-def resolve_table(table: FileTable, lbh, backupdir, basename, backup_number):
+
+def resolve_table(table: FileTable, lbh, backupdir, basename, backup_number, compression, smart_compression):
     location = lbh + "/store"
     for i in table:
-        if not os.path.exists(location + "/" + i.file_hash + "/file"):
-            mkdirexists(location + "/" + i.file_hash)
-            shutil.copyfile(i.file_name, location + "/" + i.file_hash + "/file")
+        mkdirexists(location + "/" + i.file_hash)
+        file_overwrite(location + "/" + i.file_hash + "/reference", str(backup_number))
+        if smart_compression:
+            compression = decide_to_compress(i.file_name)
+        if compression:
+            if not os.path.exists(location + "/" + i.file_hash + "/file.tar.gz"):
+                compress(i.file_name, location + "/" + i.file_hash + "/file.tar.gz")
+                if verbose:
+                    print("Compressing " + i.file_name + " to " + location + "/" + i.file_hash + "/file.tar.gz")
+        else:
+            if not os.path.exists(location + "/" + i.file_hash + "/file"):
+                shutil.copyfile(i.file_name, location + "/" + i.file_hash + "/file")
             if verbose:
                 print("Copying " + i.file_name + " to " + location + "/" + i.file_hash + "/file")
-        file_overwrite(location + "/" + i.file_hash + "/reference", str(backup_number))
         symlink_location = "../../"
         for j in range(relative_depth(backupdir + relative_path(i.file_name, basename), lbh) - 4):
             symlink_location += "../"
-        symlink_location += "store/" + i.file_hash + "/file"
-        os.symlink(symlink_location, backupdir + relative_path(i.file_name, basename))
+        if compression:
+            symlink_location += "store/" + i.file_hash + "/file.tar.gz"
+            os.symlink(symlink_location, backupdir + relative_path(i.file_name, basename) + ".tar.gz")
+        else:
+            symlink_location += "store/" + i.file_hash + "/file"
+            os.symlink(symlink_location, backupdir + relative_path(i.file_name, basename))
 
 
 def relative_depth(path1, path2):
@@ -176,16 +214,18 @@ def gc(lbh):
             shutil.rmtree(lbh + "/store/" + i)
 
 
+def compress(filename, outputfile):
+    with tarfile.open(outputfile, "w:gz") as tar:
+        tar.add(filename)
+
+
 verbose = False
 
 
 def main():
     global verbose
     # ArgParse
-    parser = argparse.ArgumentParser(
-        description = '''Backr2 backup script''',
-        epilog = '''Copyright (c) 2021 Anthony Fadly (18fadly.anthony@gmail.com)'''
-    )
+    parser = argparse.ArgumentParser(description = '''Backr2 backup script''', epilog = '''Copyright (c) 2021 Anthony Fadly (18fadly.anthony@gmail.com)''')
 
     parser.add_argument('-l', '--location', metavar = '<path>', nargs = 1, type = str, default = [None], help = 'Location to store backup, will be ignored if .backr-location exists, defaults to ~/backr2')
     parser.add_argument('-s', '--source', metavar = '<path>', nargs = 1, type = str, default = [cwd], help = 'Source to backup, defaults to current directory')
@@ -193,6 +233,9 @@ def main():
     parser.add_argument('-gc', '--garbage-collect', action='store_true', help='Delete old backups')
     parser.add_argument('-d', '--default', action='store_true', help='Use default backup location: ' + default_location)
     parser.add_argument('-v', '--verbose', action='store_true', default=False, help='Be verbose')
+    parser.add_argument('-c', '--compress', action='store_true', default=False, help='Compress backups')
+    parser.add_argument('-sc', '--smart-compress', action='store_true', default=False, help='Compress files only if they would compress to 90 percent or less of their original size')
+    #parser.add_argument('-dc', '--decompress', action='store_true', default=False, help='Decompress backups during restore')
 
     args = parser.parse_args()
 
@@ -262,7 +305,7 @@ def main():
 
     mkdirexists(lbh + "/backups/" + str(backup_number))
     create_dirs(dir_list, basename, lbh + "/backups/" + str(backup_number))
-    resolve_table(table, lbh, lbh + "/backups/" + str(backup_number), basename, backup_number)
+    resolve_table(table, lbh, lbh + "/backups/" + str(backup_number), basename, backup_number, args.compress, args.smart_compress)
     file_overwrite(lbh + "/latest", str(backup_number))
     print("Completed backup to " + lbh + "/backups/" + str(backup_number))
 
