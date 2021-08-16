@@ -151,15 +151,16 @@ def resolve_table(table: FileTable, lbh, backupdir, basename, backup_number, com
     location = lbh + "/store"
     for i in table:
         mkdirexists(location + "/" + i.file_hash)
-        file_overwrite(location + "/" + i.file_hash + "/reference", str(backup_number))
         if smart_compression:
             compression = decide_to_compress(i.file_name)
         if compression:
+            file_overwrite(location + "/" + i.file_hash + "/reference_tar", str(backup_number))
             if not os.path.exists(location + "/" + i.file_hash + "/file.tar.gz"):
                 compress(i.file_name, location + "/" + i.file_hash + "/file.tar.gz")
                 if verbose:
                     print("Compressing " + i.file_name + " to " + location + "/" + i.file_hash + "/file.tar.gz")
         else:
+            file_overwrite(location + "/" + i.file_hash + "/reference", str(backup_number))
             if not os.path.exists(location + "/" + i.file_hash + "/file"):
                 shutil.copyfile(i.file_name, location + "/" + i.file_hash + "/file")
             if verbose:
@@ -222,12 +223,16 @@ def gc(lbh):
                 shutil.rmtree(lbh + "/backups/" + str(i))
 
     for i in os.listdir(lbh + "/store"):
-        reference = file_read(lbh + "/store/" + i + "/reference")
-        if int(reference) < latest:
-            if verbose:
-                print("Deleting file " + lbh + "/store/" + i)
-            shutil.rmtree(lbh + "/store/" + i)
-
+        if os.path.exists(lbh + "/store/" + i + "/reference"):
+            reference = file_read(lbh + "/store/" + i + "/reference")
+            if int(reference) < latest:
+                os.remove(lbh + "/store/" + i + "/file")
+        if os.path.exists(lbh + "/store/" + i + "/reference_tar"):
+            reference_tar = file_read(lbh + "/store/" + i + "/reference_tar")
+            if int(reference_tar) < latest:
+                if verbose:
+                    print("Deleting file " + lbh + "/store/" + i + "/file.tar.gz")
+                os.remove(lbh + "/store/" + i + "/file.tar.gz")
 
 def compress(filename, outputfile):
     with tarfile.open(outputfile, "w:gz") as tar:
