@@ -226,6 +226,8 @@ def gc(lbh):
         if os.path.exists(lbh + "/store/" + i + "/reference"):
             reference = file_read(lbh + "/store/" + i + "/reference")
             if int(reference) < latest:
+                if verbose:
+                    print("Deleting file " + lbh + "/store/" + i + "/file")
                 os.remove(lbh + "/store/" + i + "/file")
         if os.path.exists(lbh + "/store/" + i + "/reference_tar"):
             reference_tar = file_read(lbh + "/store/" + i + "/reference_tar")
