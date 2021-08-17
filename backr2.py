@@ -131,6 +131,9 @@ def decide_by_entropy(filename):
     byteArr = list(f.read())
     f.close()
     fileSize = len(byteArr)
+    # Prevent divide by zero error
+    if fileSize == 0:
+        return False
     freqList = []
     for b in range(256):
         ctr = 0
