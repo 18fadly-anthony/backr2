@@ -206,12 +206,19 @@ def relative_path(path, basename):
     return l
 
 
+#def restore(lbh, restore_path, backup_number, to_decompress):
 def restore(lbh, restore_path, backup_number):
     if not os.path.exists(lbh):
         print("Specify source with --source and make sure backups of it exist")
     else:
         if os.path.exists(lbh + "/backups/" + backup_number):
             shutil.copytree(lbh + "/backups/" + backup_number, restore_path + "/backr2-restore")
+            #if to_decompress:
+            #    for i in tree(lbh + "/backups/" + backup_number):
+            #        if ".tar.gz" in i:
+            #            if verbose:
+            #                print("Decompressing file", i)
+            #            decompress(i)
             print("Restored to " + restore_path + "/backr2-restore")
         else:
             print("Error that backup does not exist")
@@ -247,9 +254,16 @@ def gc(lbh):
                 if not os.path.exists(lbh + "/store/" + i + "/file"):
                     shutil.rmtree(lbh + "/store/" + i)
 
+
 def compress(filename, outputfile):
     with tarfile.open(outputfile, "w:gz") as tar:
         tar.add(filename)
+
+
+#def decompress(filename):
+#    untar = tarfile.TarFile(filename)
+#    untar.extractall()
+#    untar.close()
 
 
 verbose = False
@@ -312,6 +326,7 @@ def main():
 
 
     if args.restore != '':
+        #restore(lbh, args.restore[0], args.restore[1], args.decompress)
         restore(lbh, args.restore[0], args.restore[1])
         exit()
         # Exit after restoring to avoid running the rest of the backup script
