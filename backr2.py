@@ -280,7 +280,7 @@ def main():
     parser.add_argument('-gc', '--garbage-collect', action='store_true', help='Delete old backups')
     parser.add_argument('-d', '--default', action='store_true', help='Use default backup location: ' + default_location)
     parser.add_argument('-v', '--verbose', action='store_true', default=False, help='Be verbose')
-    parser.add_argument('-c', '--compress', action='store_true', default=False, help='Compress backups')
+    parser.add_argument('-c', '--compress (compressed backups cannot be automatically restored)', action='store_true', default=False, help='Compress backups')
     parser.add_argument('-sc', '--smart-compress', action='store_true', default=False, help='Compress files only if they would compress to 90 percent or less of their original size')
     #parser.add_argument('-dc', '--decompress', action='store_true', default=False, help='Decompress backups during restore')
 
